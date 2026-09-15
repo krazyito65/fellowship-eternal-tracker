@@ -1,7 +1,9 @@
-import time
 import json
 import string
+import time
+
 from config import load_config
+
 
 def _esc(val) -> str:
     if val is None: return ""
@@ -67,7 +69,7 @@ def build_html(full_roster: list[dict], selected_team=None) -> str:
             hid = lv.get("heroId")
             if hid and hid not in all_heroes:
                 all_heroes[hid] = {"id": hid, "name": lv.get("heroName"), "icon": lv.get("heroIcon")}
-    sorted_hero_ids = sorted(list(all_heroes.keys()))
+    sorted_hero_ids = sorted(all_heroes.keys())
 
     tb_selectors_html = ""
     for i in range(1, 5):
@@ -242,7 +244,7 @@ def build_html(full_roster: list[dict], selected_team=None) -> str:
         h_set = set()
         for lv in c.get("levels", []):
             h_set.add(lv["heroName"])
-        char_heroes[c["slug"]] = sorted(list(h_set))
+        char_heroes[c["slug"]] = sorted(h_set)
 
     try:
         with open('index.html', 'r', encoding='utf-8') as f:
@@ -264,4 +266,4 @@ def build_html(full_roster: list[dict], selected_team=None) -> str:
             display_style='display:none;' if not characters else '',
         )
     except Exception as e:
-        return f"<html><body><h1>Template Error</h1><pre>{str(e)}</pre></body></html>"
+        return f"<html><body><h1>Template Error</h1><pre>{e!s}</pre></body></html>"

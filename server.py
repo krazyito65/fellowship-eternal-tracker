@@ -1,12 +1,12 @@
-import json
-import logging
-from http.server import HTTPServer, BaseHTTPRequestHandler
-from urllib.parse import parse_qs, urlparse
 import concurrent.futures
+import json
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from urllib.parse import parse_qs, urlparse
 
 from config import load_config, save_config
 from scraper import fetch_all_characters, fetch_dungeon, fetch_hero_details_html
 from template import build_html
+
 
 class TrackerHandler(BaseHTTPRequestHandler):
     def do_GET(self):

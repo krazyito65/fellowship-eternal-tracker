@@ -1,6 +1,7 @@
-import re
 import json
+import re
 import threading
+
 from config import load_config
 
 _session = None
@@ -125,7 +126,8 @@ def fetch_all_characters() -> list[dict]:
     config = load_config()
     characters = config.get("characters", [])
     api_key = config.get("api_key", "")
-    results = [None] * len(characters)
+    from typing import Any, List, Optional
+    results: List[Optional[dict[str, Any]]] = [None] * len(characters)
 
     def worker(idx, char):
         results[idx] = fetch_character_data(char.get("id", 0), char["slug"], api_key)
@@ -213,4 +215,4 @@ def fetch_hero_details_html(char, hero, api_key):
             html_out = f'<p style="color:var(--text-dim);text-align:center;padding:10px;">No Rating or Pinnacle progress yet for {hero}.</p>'
         return html_out
     except Exception as e:
-        return f'<p style="color:#ff6b6b;padding:10px;">Error: {str(e)}</p>'
+        return f'<p style="color:#ff6b6b;padding:10px;">Error: {e!s}</p>'
