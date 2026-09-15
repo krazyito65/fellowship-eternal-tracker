@@ -787,10 +787,7 @@
             fetch('/api/config')
                 .then(r => r.json())
                 .then(cfg => {
-                    // Pull api_key into its own field
-                    const apiKey = cfg.api_key || '';
-                    delete cfg.api_key;
-                    document.getElementById('apiKeyInput').value = apiKey;
+
                     document.getElementById('configEditor').value = JSON.stringify(cfg, null, 2);
                     document.getElementById('configStatus').textContent = '';
                     document.getElementById('configModal').classList.add('active');
@@ -803,7 +800,6 @@
 
         function saveConfig() {
             const txt = document.getElementById('configEditor').value;
-            const apiKey = document.getElementById('apiKeyInput').value.trim();
             const status = document.getElementById('configStatus');
             let cfg;
             try {
