@@ -1,5 +1,6 @@
 import concurrent.futures
 import json
+import time
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import parse_qs, urlparse
 
@@ -7,12 +8,10 @@ from config import load_config, save_config
 from scraper import fetch_all_characters, fetch_dungeon, fetch_hero_details_html
 from template import build_html
 
-
-import time
-
 _cache_data = None
 _cache_time = 0
 CACHE_TTL = 300  # 5 minutes
+
 
 class TrackerHandler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -29,11 +28,13 @@ class TrackerHandler(BaseHTTPRequestHandler):
 
         now = time.time()
         if force_refresh or _cache_data is None or (now - _cache_time > CACHE_TTL):
-            print(f"[*] Fetching fresh character data from Fellows.gg...")
+            print("[*] Fetching fresh character data from Fellows.gg...")
             _cache_data = fetch_all_characters()
             _cache_time = now
         else:
-            print(f"[*] Using cached character data ({(CACHE_TTL - (now - _cache_time)):.0f}s left in cache)...")
+            print(
+                f"[*] Using cached character data ({(CACHE_TTL - (now - _cache_time)):.0f}s left in cache)..."
+            )
 
         html = build_html(_cache_data, selected_team)
 
@@ -53,14 +54,10 @@ class TrackerHandler(BaseHTTPRequestHandler):
 
             config = load_config()
             characters = config.get("characters", [])
-            api_key = config.get("api_key", "")
-
             selected_chars = [c for c in characters if selections.get(c["slug"])]
             with concurrent.futures.ThreadPoolExecutor() as executor:
                 futures = [
-                    executor.submit(
-                        fetch_dungeon, c, selections.get(c["slug"]), api_key
-                    )
+                    executor.submit(fetch_dungeon, c, selections.get(c["slug"]))
                     for c in selected_chars
                 ]
                 results = [f.result() for f in futures]
@@ -87,8 +84,7 @@ class TrackerHandler(BaseHTTPRequestHandler):
 
             html_out = ""
             if char and hero:
-                api_key = config.get("api_key", "")
-                html_out = fetch_hero_details_html(char, hero, api_key)
+                html_out = fetch_hero_details_html(char, hero)
 
             self.send_response(200)
             self.send_header("Content-Type", "application/json; charset=utf-8")

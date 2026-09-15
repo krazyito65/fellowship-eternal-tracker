@@ -44,8 +44,6 @@ def build_html(full_roster: list[dict], selected_team=None) -> str:
     else:
         characters = []
 
-    api_key_val = _esc(cfg.get("api_key", ""))
-
     tracked_chars_html = ""
     for char in full_roster:
         cname = _esc(char.get("name", char["slug"]))
@@ -284,7 +282,6 @@ def build_html(full_roster: list[dict], selected_team=None) -> str:
             tracked_chars_html=tracked_chars_html,
             tb_selectors_html=tb_selectors_html,
             tb_saved_teams_html=tb_saved_teams_html,
-            api_key_val=api_key_val,
             char_heroes_json=json.dumps(char_heroes),
             empty_state_html='<div style="text-align:center; margin: 40px; padding:40px; background:rgba(255,255,255,0.05); border-radius:12px;"><h2 style="margin-bottom:10px;">No Team Selected</h2><p style="color:var(--text-dim);">Please select an Active Team from the top menu, or click Team Builder to create one.</p></div>'
             if not characters

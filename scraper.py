@@ -1,13 +1,12 @@
 import json
 import re
-import threading
 
 from config import load_config
 
 _session = None
 
 
-def _get_session(api_key: str = ""):
+def _get_session():
     global _session
     if _session is None:
         import requests as req_lib
@@ -24,8 +23,6 @@ def _get_session(api_key: str = ""):
             }
         )
         _session.cookies.set("tomestone_human_verified", "1", domain=".fellows.gg")
-    if api_key:
-        _session.headers["Authorization"] = f"Bearer {api_key}"
     return _session
 
 
@@ -105,9 +102,9 @@ def parse_page_data(page_data: dict, char_id: int, slug: str) -> dict:
     }
 
 
-def fetch_character_data(char_id: int, slug: str, api_key: str = "") -> dict:
+def fetch_character_data(char_id: int, slug: str) -> dict:
     url = f"https://fellows.gg/character/{char_id}/{slug}/ratings"
-    session = _get_session(api_key)
+    session = _get_session()
 
     try:
         resp = session.get(url, timeout=15)
@@ -138,7 +135,6 @@ def fetch_character_data(char_id: int, slug: str, api_key: str = "") -> dict:
 def fetch_all_characters() -> list[dict]:
     config = load_config()
     characters = config.get("characters", [])
-    api_key = config.get("api_key", "")
     from typing import Any
 
     results: list[dict[str, Any] | None] = [None] * len(characters)
@@ -150,7 +146,7 @@ def fetch_all_characters() -> list[dict]:
         idx, char = args
         # Polite delay to avoid hammering the server
         time.sleep(0.5)
-        return idx, fetch_character_data(char.get("id", 0), char["slug"], api_key)
+        return idx, fetch_character_data(char.get("id", 0), char["slug"])
 
     with ThreadPoolExecutor(max_workers=3) as executor:
         futures = executor.map(worker, enumerate(characters))
@@ -160,10 +156,10 @@ def fetch_all_characters() -> list[dict]:
     return [r for r in results if r is not None]
 
 
-def fetch_dungeon(char, hero, api_key):
+def fetch_dungeon(char, hero):
     if not hero:
         return {"char": char["slug"], "scores": []}
-    session = _get_session(api_key)
+    session = _get_session()
     url = f"https://fellows.gg/character-contents/{char['id']}/{char['slug']}/ratings?hero={hero}"
     try:
         r = session.get(url, timeout=15)
@@ -174,8 +170,8 @@ def fetch_dungeon(char, hero, api_key):
         return {"char": char["slug"], "hero": hero, "error": str(e)}
 
 
-def fetch_hero_details_html(char, hero, api_key):
-    session = _get_session(api_key)
+def fetch_hero_details_html(char, hero):
+    session = _get_session()
     url = (
         f"https://fellows.gg/character/{char['id']}/{char['slug']}/ratings?hero={hero}"
     )
