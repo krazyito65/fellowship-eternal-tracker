@@ -143,17 +143,19 @@ def fetch_all_characters() -> list[dict]:
 
     results: list[dict[str, Any] | None] = [None] * len(characters)
 
-    def worker(idx, char):
-        results[idx] = fetch_character_data(char.get("id", 0), char["slug"], api_key)
+    import time
+    from concurrent.futures import ThreadPoolExecutor
 
-    threads = []
-    for i, char in enumerate(characters):
-        t = threading.Thread(target=worker, args=(i, char))
-        t.start()
-        threads.append(t)
+    def worker(args):
+        idx, char = args
+        # Polite delay to avoid hammering the server
+        time.sleep(0.5)
+        return idx, fetch_character_data(char.get("id", 0), char["slug"], api_key)
 
-    for t in threads:
-        t.join(timeout=20)
+    with ThreadPoolExecutor(max_workers=3) as executor:
+        futures = executor.map(worker, enumerate(characters))
+        for idx, res in futures:
+            results[idx] = res
 
     return [r for r in results if r is not None]
 

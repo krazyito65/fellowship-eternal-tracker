@@ -1,4 +1,4 @@
-﻿# Fellowship Eternal Tracker
+# Fellowship Eternal Tracker
 
 A lightweight web dashboard for tracking and comparing Eternal Dungeon progression across your *Fellows.gg* characters and teams.
 
@@ -10,14 +10,14 @@ A lightweight web dashboard for tracking and comparing Eternal Dungeon progressi
 ## Setup
 
 ### Windows
-Double-click \un.bat\ to automatically install dependencies and start the local server.
+Double-click `run.bat` to automatically install dependencies and start the local server.
 
 ### Linux / macOS
 Run the setup script from the terminal:
-\\\ash
+```bash
 chmod +x run.sh
 ./run.sh
-\\\
+```
 
 ## Configuration
-Upon first run, duplicate \config.example.json\ to \config.json\, and open the UI (http://localhost:8099) to add your characters.
+Upon first run, duplicate `config.example.json` to `config.json`, and open the UI (http://localhost:8099) to add your characters.

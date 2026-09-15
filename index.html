@@ -729,7 +729,7 @@
             btn.disabled = true;
             btn.textContent = '⏳ Refreshing...';
             // Simply reload the page — the server re-fetches on each request
-            location.reload();
+            window.location.href = window.location.pathname + '?force_refresh=true' + (window.location.search ? '&' + window.location.search.substring(1).replace('force_refresh=true', '').replace('&&', '&') : '');
         }
 
         function addCharacter() {

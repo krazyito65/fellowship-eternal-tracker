@@ -8,6 +8,12 @@ from scraper import fetch_all_characters, fetch_dungeon, fetch_hero_details_html
 from template import build_html
 
 
+import time
+
+_cache_data = None
+_cache_time = 0
+CACHE_TTL = 300  # 5 minutes
+
 class TrackerHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/favicon.ico":
@@ -15,13 +21,21 @@ class TrackerHandler(BaseHTTPRequestHandler):
             self.end_headers()
             return
 
+        global _cache_data, _cache_time
         parsed_url = urlparse(self.path)
         qs = parse_qs(parsed_url.query)
         selected_team = qs.get("team", [None])[0]
+        force_refresh = qs.get("force_refresh", [None])[0] == "true"
 
-        print(f"[*] Fetching character data for team: {selected_team}...")
-        all_chars = fetch_all_characters()
-        html = build_html(all_chars, selected_team)
+        now = time.time()
+        if force_refresh or _cache_data is None or (now - _cache_time > CACHE_TTL):
+            print(f"[*] Fetching fresh character data from Fellows.gg...")
+            _cache_data = fetch_all_characters()
+            _cache_time = now
+        else:
+            print(f"[*] Using cached character data ({(CACHE_TTL - (now - _cache_time)):.0f}s left in cache)...")
+
+        html = build_html(_cache_data, selected_team)
 
         self.send_response(200)
         self.send_header("Content-Type", "text/html; charset=utf-8")
