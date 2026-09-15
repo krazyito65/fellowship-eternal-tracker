@@ -694,7 +694,7 @@
             if (!name) return alert('Please enter a team name');
             
             const members = {};
-            for (let i=0; i<4; i++) {
+            for (let i=1; i<=4; i++) {
                 const c = document.getElementById('tbChar'+i).value;
                 const h = document.getElementById('tbHero'+i).value;
                 if (c && h) members[c] = h;
