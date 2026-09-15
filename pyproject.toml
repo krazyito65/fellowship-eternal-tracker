@@ -13,6 +13,9 @@ package = false
 
 [dependency-groups]
 dev = [
+    "pytest>=9.1.1",
+    "pytest-playwright>=0.9.0",
+    "requests-mock>=1.12.1",
     "ruff>=0.16.7",
     "ty>=0.0.81",
 ]
@@ -22,3 +25,6 @@ dev = [
 [tool.ruff.lint]
 ignore = ["BLE001", "TRY002", "E501"]
 extend-select = ["UP", "E", "F"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]

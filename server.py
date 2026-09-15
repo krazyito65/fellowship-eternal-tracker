@@ -20,6 +20,15 @@ class TrackerHandler(BaseHTTPRequestHandler):
             self.end_headers()
             return
 
+        parsed_url = urlparse(self.path)
+        if parsed_url.path == "/api/config":
+            config = load_config()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.end_headers()
+            self.wfile.write(json.dumps(config).encode("utf-8"))
+            return
+
         global _cache_data, _cache_time
         parsed_url = urlparse(self.path)
         qs = parse_qs(parsed_url.query)
