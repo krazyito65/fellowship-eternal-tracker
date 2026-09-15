@@ -16,3 +16,9 @@ dev = [
     "ruff>=0.16.7",
     "ty>=0.0.81",
 ]
+
+
+
+[tool.ruff.lint]
+ignore = ["BLE001", "TRY002", "E501"]
+extend-select = ["UP", "E", "F"]

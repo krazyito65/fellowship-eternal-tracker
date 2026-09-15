@@ -23,7 +23,7 @@ def _format_timestamp(ts: int) -> str:
     try:
         t = time.localtime(ts)
         return time.strftime("%Y-%m-%d %H:%M", t)
-    except:
+    except Exception:
         return str(ts)
 
 
@@ -271,7 +271,7 @@ def build_html(full_roster: list[dict], selected_team=None) -> str:
         char_heroes[c["slug"]] = sorted(h_set)
 
     try:
-        with open("index.html", "r", encoding="utf-8") as f:
+        with open("index.html", encoding="utf-8") as f:
             template_str = f.read()
         template = string.Template(template_str)
 

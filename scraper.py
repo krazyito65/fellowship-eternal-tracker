@@ -139,9 +139,9 @@ def fetch_all_characters() -> list[dict]:
     config = load_config()
     characters = config.get("characters", [])
     api_key = config.get("api_key", "")
-    from typing import Any, List, Optional
+    from typing import Any
 
-    results: List[Optional[dict[str, Any]]] = [None] * len(characters)
+    results: list[dict[str, Any] | None] = [None] * len(characters)
 
     def worker(idx, char):
         results[idx] = fetch_character_data(char.get("id", 0), char["slug"], api_key)

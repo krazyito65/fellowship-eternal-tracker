@@ -6,7 +6,7 @@ CONFIG_PATH = Path(__file__).parent / "config.json"
 
 def load_config() -> dict:
     if CONFIG_PATH.exists():
-        with open(CONFIG_PATH, "r", encoding="utf-8") as f:
+        with open(CONFIG_PATH, encoding="utf-8") as f:
             try:
                 return json.load(f)
             except json.JSONDecodeError:
