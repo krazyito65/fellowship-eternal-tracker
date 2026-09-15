@@ -1,0 +1,46 @@
+{
+    "characters": [
+        {
+            "id": 1445,
+            "slug": "krazyito"
+        },
+        {
+            "id": 252392,
+            "slug": "recluseos"
+        },
+        {
+            "id": 133890,
+            "slug": "osten"
+        },
+        {
+            "id": 257570,
+            "slug": "key"
+        },
+        {
+            "slug": "omgacow",
+            "id": 77479
+        }
+    ],
+    "port": 8099,
+    "teams": [
+        {
+            "name": "team 1",
+            "members": {
+                "krazyito": "Gunde",
+                "omgacow": "Helena",
+                "osten": "Vigour",
+                "key": "Aeona"
+            }
+        },
+        {
+            "name": "static",
+            "members": {
+                "krazyito": "Gunde",
+                "recluseos": "Rime",
+                "osten": "Meiko",
+                "key": "Aeona"
+            }
+        }
+    ],
+    "api_key": "YOUR_FELLOWS_GG_API_KEY"
+}

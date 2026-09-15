@@ -1,0 +1,13 @@
+﻿@echo off
+echo Setting up Fellowship Eternal Tracker...
+if not exist "config.json" (
+    echo Copying config.example.json to config.json...
+    copy config.example.json config.json
+)
+echo Installing dependencies using uv...
+uv venv
+call .venv\Scripts\activate.bat
+uv pip install -r pyproject.toml
+echo Starting server...
+python server.py
+pause

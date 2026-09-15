@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Fellowship Eternal Tracker</title>
+    <style>
+        :root {
+            --bg: #0f0f0f;
+            --card-bg: #1a1a2e;
+            --card-border: #2a2a4a;
+            --text: #e5e5e5;
+            --text-dim: #8888aa;
+            --accent: #7c5cbf;
+            --eternal: #ff6b35;
+            --eternal-glow: rgba(255, 107, 53, 0.3);
+            --paragon: #a855f7;
+            --champion: #3b82f6;
+            --contender: #22c55e;
+            --adept: #eab308;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 30px 0;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            background: linear-gradient(135deg, var(--eternal), var(--paragon));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+
+        .header .subtitle {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        .controls {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn:hover { background: #9b7bd4; transform: translateY(-1px); }
+        .btn:active { transform: translateY(0); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .btn-config {
+            background: transparent;
+            border: 1px solid var(--card-border);
+            margin-left: 10px;
+        }
+        .btn-config:hover { border-color: var(--accent); background: rgba(124, 92, 191, 0.1); }
+
+        .fetch-time {
+            color: var(--text-dim);
+            font-size: 0.8rem;
+            margin-top: 10px;
+        }
+
+        /* ── Bar Chart ── */
+        .section-title {
+            font-size: 1.3rem;
+            margin: 30px 0 15px;
+            padding-left: 10px;
+            border-left: 3px solid var(--eternal);
+        }
+
+        .bar-chart {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .bar-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .bar-label {
+            width: 150px;
+            min-width: 150px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+
+        .bar-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+        }
+
+        .bar-track {
+            flex: 1;
+            background: #2a2a4a;
+            border-radius: 8px;
+            height: 36px;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4a3f6b, var(--accent));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 12px;
+            transition: width 0.8s ease;
+            min-width: 80px;
+        }
+
+        .bar-leader {
+            background: linear-gradient(90deg, #6b3f2f, var(--eternal));
+            box-shadow: 0 0 15px var(--eternal-glow);
+        }
+
+        .bar-value {
+            font-weight: 700;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+
+        .bar-hero {
+            width: 80px;
+            min-width: 80px;
+            font-size: 0.8rem;
+            color: var(--text-dim);
+        }
+
+        /* ── Cards ── */
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 20px;
+            transition: border-color 0.2s;
+        }
+
+        .card:hover { border-color: var(--accent); }
+
+        .error-card { border-color: #ef4444; }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
+        }
+
+        .card-title { flex: 1; }
+
+        .card-title h2 {
+            font-size: 1.1rem;
+            margin-bottom: 2px;
+        }
+
+        .card-title h2 a {
+            color: var(--text);
+            text-decoration: none;
+        }
+        .card-title h2 a:hover { color: var(--accent); }
+
+        .last-updated {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+        }
+
+        .eternal-highlight {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 107, 53, 0.1);
+            border: 1px solid rgba(255, 107, 53, 0.3);
+            border-radius: 10px;
+            padding: 6px 14px;
+        }
+
+        .eternal-number {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--eternal);
+            line-height: 1;
+        }
+
+        .eternal-label {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            line-height: 1.3;
+        }
+
+        .season-info, .pinnacle-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            background: rgba(124, 92, 191, 0.08);
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-size: 0.85rem;
+            flex-wrap: wrap;
+        }
+
+        .season-label { color: var(--text-dim); }
+        .season-rating { font-weight: 600; }
+        .season-rank { font-size: 0.8rem; }
+
+        .rank-parselegendary { color: #ff8000; }
+        .rank-parseepic { color: #a335ee; }
+        .rank-parserare { color: #0070dd; }
+
+        .pinnacle-label { font-weight: 600; }
+        .pinnacle-cleared { color: var(--text-dim); }
+
+        .hero-levels {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .hero-level {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            font-size: 0.85rem;
+        }
+
+        .hero-icon-small {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+        }
+
+        .hero-name {
+            font-weight: 500;
+        }
+
+        .league-badge {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 0.75rem;
+        }
+
+        .league-eternal { background: rgba(255, 107, 53, 0.2); color: var(--eternal); }
+        .league-paragon { background: rgba(168, 85, 247, 0.2); color: var(--paragon); }
+        .league-champion { background: rgba(59, 130, 246, 0.2); color: var(--champion); }
+        .league-contender { background: rgba(34, 197, 94, 0.2); color: var(--contender); }
+        .league-adept { background: rgba(234, 179, 8, 0.2); color: var(--adept); }
+
+        .error-badge {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            padding: 2px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+        .error-msg { color: #ef4444; font-size: 0.85rem; }
+
+        /* ── Comparison Table ── */
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 12px;
+            border: 1px solid var(--card-border);
+            margin-bottom: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--card-bg);
+        }
+
+        th, td {
+            padding: 10px 14px;
+            text-align: center;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        th {
+            background: #16162b;
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            position: sticky;
+            top: 0;
+        }
+
+        .hero-icon-table {
+            width: 28px;
+            height: 28px;
+            border-radius: 4px;
+        }
+
+        .sticky-col {
+            position: sticky;
+            left: 0;
+            background: var(--card-bg);
+            z-index: 1;
+            text-align: left;
+        }
+
+        th.sticky-col { background: #16162b; }
+
+        .player-name { font-weight: 600; }
+
+        .level-cell {
+            font-weight: 700;
+        }
+
+        .cell-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .cell-difficulty { font-size: 1.1rem; }
+
+        .cell-league { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.05em; }
+
+        .level-eternal .cell-difficulty { color: var(--eternal); }
+        .level-paragon .cell-difficulty { color: var(--paragon); }
+        .level-champion .cell-difficulty { color: var(--champion); }
+        .level-contender .cell-difficulty { color: var(--contender); }
+        .level-adept .cell-difficulty { color: var(--adept); }
+
+        .level-eternal .cell-league { color: rgba(255,107,53,0.6); }
+        .level-paragon .cell-league { color: rgba(168,85,247,0.6); }
+        .level-champion .cell-league { color: rgba(59,130,246,0.6); }
+        .level-contender .cell-league { color: rgba(34,197,94,0.6); }
+        .level-adept .cell-league { color: rgba(234,179,8,0.6); }
+
+        .empty-cell { color: #444; }
+
+        /* ── Config Modal ── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-overlay.active { display: flex; }
+
+        .modal {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 30px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal h2 { margin-bottom: 15px; }
+
+        .modal textarea {
+            width: 100%;
+            min-height: 300px;
+            background: #0f0f0f;
+            color: var(--text);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 12px;
+            font-family: 'Cascadia Code', 'Fira Code', monospace;
+            font-size: 0.85rem;
+            resize: vertical;
+        }
+
+        .modal .btn-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            justify-content: flex-end;
+        }
+
+        .btn-cancel {
+            background: transparent;
+            border: 1px solid var(--card-border);
+        }
+
+        .status-msg {
+            margin-top: 10px;
+            font-size: 0.85rem;
+            min-height: 20px;
+        }
+        .status-msg.ok { color: #22c55e; }
+        .status-msg.err { color: #ef4444; }
+
+        .dungeon-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 0.95rem;
+        }
+        .dungeon-row {
+            transition: background 0.15s;
+        }
+        .dungeon-row:nth-child(even) {
+            background: rgba(255, 255, 255, 0.02);
+        }
+        .dungeon-row:hover {
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        @media (max-width: 600px) {
+            .cards { grid-template-columns: 1fr; }
+            .bar-label { width: 100px; min-width: 100px; }
+            .bar-hero { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>⚔️ Fellowship Eternal Tracker</h1>
+        <p class="subtitle">Comparing Eternal dungeon progression across characters</p>
+    </div>
+
+    <div class="controls">
+        <div style="display:flex; align-items:center; gap:8px; background:rgba(255,255,255,0.05); padding:6px 12px; border-radius:6px;">
+            <label style="font-weight:600; color:var(--paragon);">Active Team:</label>
+            <select id="globalTeamSelect" style="padding:6px 10px;background:#0f0f0f;color:var(--text);border:1px solid var(--card-border);border-radius:6px;min-width:150px;" onchange="changeGlobalTeam()">
+                <option value="">-- Entire Roster --</option>
+                ${teams_options_html}
+            </select>
+            <button class="btn btn-config" style="background:#2b1616; margin-left:10px;" onclick="openTeamBuilder()">👥 Team Builder</button>
+        </div>
+        
+        <div style="margin-left:auto; display:flex; gap:10px;">
+            <button class="btn" onclick="doRefresh()" id="refreshBtn">🔄 Refresh Data</button>
+            <button class="btn btn-config" onclick="openConfig()">⚙️ Config</button>
+            <div class="fetch-time" id="fetchTime" style="align-self:center;">Last fetched: ${fetch_time}</div>
+        </div>
+    </div>
+
+    ${empty_state_html}
+    <h3 class="section-title" style="${display_style}">Highest Eternal Level</h3>
+    <div class="bar-chart" style="${display_style}">
+        ${bar_chart_html}
+    </div>
+
+    <div style="display:flex; flex-wrap:wrap; gap:30px; justify-content:center; align-items:flex-start; margin-bottom:30px;">
+        
+        <!-- Left Side: Team Dungeons -->
+        <div style="flex: 1 1 45%; min-width:600px; max-width:1200px;">
+            <h3 class="section-title" style="${display_style}">Team Dungeons Comparison</h3>
+            <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:12px;padding:20px; ${display_style}">
+                <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end; margin-bottom:10px;" id="teamSelectors">
+                    ${team_dropdowns_html}
+                    <button class="btn" onclick="fetchTeamDungeons()" style="padding:8px 16px; margin-left:auto;">Compare</button>
+                    <span id="teamDungeonStatus" style="font-size:0.85rem;color:var(--text-dim);"></span>
+                </div>
+                <div id="teamDungeonRecommendation" style="display:none; margin-bottom:10px; padding:8px 12px; font-size:0.9rem; background:rgba(255, 107, 53, 0.1); border:1px solid rgba(255, 107, 53, 0.3); border-radius:6px;"></div>
+                <div id="teamDungeonsTable" style="overflow-x:auto;"></div>
+            </div>
+        </div>
+
+        <!-- Right Side: Character Details -->
+        <div style="flex: 1 1 45%; min-width:600px; max-width:1200px;">
+            <h3 class="section-title" style="${display_style}">Character Details</h3>
+            <div class="cards" style="${display_style}">
+                ${cards_html}
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Config Modal -->
+    <div class="modal-overlay" id="configModal">
+        <div class="modal">
+            <h2>&#9881; Configuration</h2>
+
+            <div style="margin-bottom:18px;">
+                <label for="apiKeyInput" style="display:block;font-weight:600;margin-bottom:6px;">
+                    &#128273; API Key
+                </label>
+                <input type="text" id="apiKeyInput" style="width:100%;padding:10px;background:#0f0f0f;color:var(--text);border:1px solid var(--card-border);border-radius:6px;" value="${api_key_val}">
+            </div>
+
+            <div style="margin-bottom:18px;">
+                <label style="display:block;font-weight:600;margin-bottom:6px;">
+                    &#128101; Tracked Characters
+                </label>
+                <div style="margin-bottom:15px;">
+                <label style="display:block;font-weight:600;margin-bottom:5px;">Add Character(s) by URL:</label>
+                <textarea id="cfgNewChar" placeholder="https://fellows.gg/character/1445/krazyito&#10;(one per line)" style="width:100%;padding:8px;border-radius:4px;border:1px solid var(--card-border);background:#0f0f0f;color:white;margin-bottom:10px;resize:vertical;min-height:80px;"></textarea>
+                <button class="btn" onclick="addCharacter()">Add Character(s)</button>
+            </div>
+                <div id="trackedCharsList" style="background:#0f0f0f; border:1px solid var(--card-border); border-radius:6px; padding:10px; max-height:150px; overflow-y:auto; display:flex; flex-direction:column; gap:6px;">
+                    ${tracked_chars_html}
+                </div>
+            </div>
+
+            <label style="display:block;font-weight:600;margin-bottom:6px;">Characters &amp; Settings</label>
+            <textarea id="configEditor" spellcheck="false"></textarea>
+            <div class="status-msg" id="configStatus"></div>
+            <div class="btn-row">
+                <button class="btn btn-cancel" onclick="closeConfig()">Cancel</button>
+                <button class="btn" onclick="saveConfig()">&#128190; Save &amp; Reload</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Team Builder Modal -->
+    <div class="modal-overlay" id="teamModal">
+        <div class="modal">
+            <h2>👥 Team Builder</h2>
+            
+            <div style="margin-bottom:18px;">
+                <label style="display:block;font-weight:600;margin-bottom:6px;">Create / Update Team</label>
+                <div style="display:flex; gap:8px; margin-bottom:10px;">
+                    <input type="text" id="tbTeamName" placeholder="Team Name (e.g. Push Group 1)" style="flex:1; padding:10px; background:#0f0f0f; color:var(--text); border:1px solid var(--card-border); border-radius:6px;">
+                </div>
+                
+                <div style="background:#0f0f0f; padding:10px; border-radius:6px; border:1px solid var(--card-border); margin-bottom:10px;">
+                    <label style="display:block;font-weight:600;margin-bottom:6px;font-size:0.85rem;color:var(--text-dim);">Select up to 4 members:</label>
+                    ${tb_selectors_html}
+                </div>
+                <button class="btn" onclick="tbSaveTeam()" style="width:100%; padding:10px; background:var(--primary);">Save Team</button>
+                <div id="tbStatus" class="status-msg"></div>
+            </div>
+
+            <div style="margin-bottom:18px;">
+                <label style="display:block;font-weight:600;margin-bottom:6px;">Saved Teams</label>
+                <div id="tbSavedTeamsList" style="background:#0f0f0f; border:1px solid var(--card-border); border-radius:6px; padding:10px; max-height:150px; overflow-y:auto; display:flex; flex-direction:column; gap:6px;">
+                    ${tb_saved_teams_html}
+                </div>
+            </div>
+
+            <div class="btn-row">
+                <button class="btn btn-cancel" onclick="closeTeamBuilder()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const CHAR_HEROES = ${char_heroes_json};
+        
+        function changeGlobalTeam() {
+            const val = document.getElementById('globalTeamSelect').value;
+            window.location.href = '/?team=' + encodeURIComponent(val);
+        }
+        
+        window.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const team = params.get('team');
+            if (team) {
+                const sel = document.getElementById('globalTeamSelect');
+                if (sel) sel.value = team;
+                
+                // Auto-fetch the comparison table if a team is selected
+                setTimeout(() => fetchTeamDungeons(), 100);
+            }
+        });
+        
+        function selectHeroForComparison(charSlug, heroName, elem) {
+            const card = elem.closest('.char-card');
+            
+            // Update active styling
+            const container = elem.closest('.hero-levels');
+            if (container) {
+                container.querySelectorAll('.hero-level').forEach(p => {
+                    p.style.boxShadow = 'none';
+                });
+                elem.style.boxShadow = '0 0 0 2px var(--paragon)';
+                elem.style.borderRadius = '14px';
+            }
+            
+            // Show loading state
+            const detailsDiv = card.querySelector('.hero-specific-details');
+            if (detailsDiv) {
+                detailsDiv.style.opacity = '0.5';
+            }
+            
+            // Update Avatar and Highest Level locally
+            const avatarImg = card.querySelector('.avatar');
+            const heroIcon = elem.querySelector('.hero-icon-small');
+            if (avatarImg && heroIcon) {
+                avatarImg.src = heroIcon.src;
+            }
+            
+            const badge = elem.querySelector('.league-badge');
+            const diffMatch = badge ? badge.textContent.match(/(\d+)/) : null;
+            const diffVal = diffMatch ? diffMatch[1] : '';
+            
+            let eternalHighlight = card.querySelector('.eternal-highlight');
+            if (!eternalHighlight && diffVal) {
+                // Create it if it doesn't exist
+                const headerRight = card.querySelector('.card-header > div:last-child');
+                if (headerRight) {
+                    headerRight.innerHTML = `
+                    <div class="eternal-highlight">
+                        <span class="eternal-number"></span>
+                        <span class="eternal-label"></span>
+                    </div>`;
+                    eternalHighlight = card.querySelector('.eternal-highlight');
+                }
+            }
+            
+            if (eternalHighlight && diffVal) {
+                eternalHighlight.querySelector('.eternal-number').textContent = diffVal;
+                eternalHighlight.querySelector('.eternal-label').innerHTML = `Highest Level<br/><small>${heroName}</small>`;
+            } else if (eternalHighlight) {
+                eternalHighlight.style.display = 'none';
+            }
+            
+            fetch('/api/hero-details', {
+                method: 'POST',
+                body: JSON.stringify({slug: charSlug, hero: heroName}),
+                headers: {'Content-Type': 'application/json'}
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (detailsDiv && data.html) {
+                    detailsDiv.innerHTML = data.html;
+                    detailsDiv.style.opacity = '1';
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                if (detailsDiv) detailsDiv.style.opacity = '1';
+            });
+        }
+        
+        function openTeamBuilder() { document.getElementById('teamModal').classList.add('active'); }
+        function closeTeamBuilder() { document.getElementById('teamModal').classList.remove('active'); }
+        
+        function tbUpdateHeroes(index) {
+            const charSelect = document.getElementById('tbChar' + index);
+            const heroSelect = document.getElementById('tbHero' + index);
+            const slug = charSelect.value;
+            
+            heroSelect.innerHTML = '<option value="">-- Select Hero --</option>';
+            if (!slug) return;
+            
+            const heroes = CHAR_HEROES[slug] || [];
+            heroes.forEach(h => {
+                heroSelect.innerHTML += `<option value="${h}">${h}</option>`;
+            });
+        }
+        
+        function tbSaveTeam() {
+            const name = document.getElementById('tbTeamName').value.trim();
+            if (!name) return alert('Please enter a team name');
+            
+            const members = {};
+            for (let i=0; i<4; i++) {
+                const c = document.getElementById('tbChar'+i).value;
+                const h = document.getElementById('tbHero'+i).value;
+                if (c && h) members[c] = h;
+            }
+            
+            if (Object.keys(members).length === 0) return alert('No members selected');
+            
+            fetch('/api/config').then(r => r.json()).then(cfg => {
+                if (!cfg.teams) cfg.teams = [];
+                const existing = cfg.teams.find(t => t.name === name);
+                if (existing) existing.members = members;
+                else cfg.teams.push({name: name, members: members});
+                
+                fetch('/api/config', {method: 'POST', body: JSON.stringify(cfg), headers: {'Content-Type': 'application/json'}})
+                .then(() => location.reload());
+            });
+        }
+        
+        function tbDeleteTeam(name) {
+            if (!confirm('Delete team ' + name + '?')) return;
+            fetch('/api/config').then(r => r.json()).then(cfg => {
+                if (cfg.teams) {
+                    cfg.teams = cfg.teams.filter(t => t.name !== name);
+                    fetch('/api/config', {method: 'POST', body: JSON.stringify(cfg), headers: {'Content-Type': 'application/json'}})
+                    .then(() => location.reload());
+                }
+            });
+        }
+
+        function doRefresh() {
+            const btn = document.getElementById('refreshBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Refreshing...';
+            // Simply reload the page — the server re-fetches on each request
+            location.reload();
+        }
+
+        function addCharacter() {
+            const urlInput = document.getElementById('cfgNewChar').value.trim();
+            if (!urlInput) return;
+            
+            const lines = urlInput.split('\n').map(l => l.trim()).filter(l => l);
+            if (lines.length === 0) return;
+            
+            fetch('/api/config').then(r => r.json()).then(cfg => {
+                if (!cfg.characters) cfg.characters = [];
+                let added = false;
+                
+                lines.forEach(line => {
+                    let slug = line;
+                    let id = null;
+                    const match = line.match(/character\/(\d+)\/([^\/\?]+)/);
+                    if (match) {
+                        id = parseInt(match[1]);
+                        slug = match[2];
+                    }
+                    if (slug && !cfg.characters.find(c => c.slug === slug)) {
+                        const newChar = {slug: slug};
+                        if (id) newChar.id = id;
+                        cfg.characters.push(newChar);
+                        added = true;
+                    }
+                });
+                
+                if (added) {
+                    fetch('/api/config', {method: 'POST', body: JSON.stringify(cfg), headers: {'Content-Type': 'application/json'}})
+                    .then(() => location.reload());
+                } else {
+                    document.getElementById('configStatus').className = 'status-msg err';
+                    document.getElementById('configStatus').textContent = 'All characters already tracked or invalid URLs.';
+                }
+            });
+        }
+        
+        function removeCharacter(slug) {
+            if (!confirm('Remove ' + slug + '?')) return;
+            // Need to fetch config first if modal not open? We can just do a direct save.
+            fetch('/api/config').then(r => r.json()).then(cfg => {
+                if (cfg.characters) {
+                    cfg.characters = cfg.characters.filter(c => c.slug !== slug);
+                    fetch('/api/config', {method: 'POST', body: JSON.stringify(cfg), headers: {'Content-Type': 'application/json'}})
+                    .then(() => location.reload());
+                }
+            });
+        }
+
+
+
+        function openConfig() {
+            fetch('/api/config')
+                .then(r => r.json())
+                .then(cfg => {
+                    // Pull api_key into its own field
+                    const apiKey = cfg.api_key || '';
+                    delete cfg.api_key;
+                    document.getElementById('apiKeyInput').value = apiKey;
+                    document.getElementById('configEditor').value = JSON.stringify(cfg, null, 2);
+                    document.getElementById('configStatus').textContent = '';
+                    document.getElementById('configModal').classList.add('active');
+                });
+        }
+
+        function closeConfig() {
+            document.getElementById('configModal').classList.remove('active');
+        }
+
+        function saveConfig() {
+            const txt = document.getElementById('configEditor').value;
+            const apiKey = document.getElementById('apiKeyInput').value.trim();
+            const status = document.getElementById('configStatus');
+            let cfg;
+            try {
+                cfg = JSON.parse(txt);
+            } catch(e) {
+                status.className = 'status-msg err';
+                status.textContent = 'Invalid JSON: ' + e.message;
+                return;
+            }
+            // Merge api_key back in
+            cfg.api_key = apiKey;
+            const body = JSON.stringify(cfg, null, 2);
+            fetch('/api/config', {method: 'POST', body: body, headers: {'Content-Type': 'application/json'}})
+                .then(r => {
+                    if (r.ok) {
+                        status.className = 'status-msg ok';
+                        status.textContent = 'Saved! Reloading...';
+                        setTimeout(() => location.reload(), 800);
+                    } else {
+                        return r.text().then(t => {
+                            status.className = 'status-msg err';
+                            status.textContent = t;
+                        });
+                    }
+                });
+        }
+
+        // Close modal on overlay click
+        document.getElementById('configModal').addEventListener('click', function(e) {
+            if (e.target === this) closeConfig();
+        });
+
+        function fetchTeamDungeons() {
+            const selects = document.querySelectorAll('.team-hero-select');
+            const payload = {};
+            let hasSelection = false;
+            
+            selects.forEach(sel => {
+                if (sel.value) {
+                    payload[sel.getAttribute('data-slug')] = sel.value;
+                    hasSelection = true;
+                }
+            });
+            
+            const status = document.getElementById('teamDungeonStatus');
+            const recDiv = document.getElementById('teamDungeonRecommendation');
+            const tableDiv = document.getElementById('teamDungeonsTable');
+            
+            if (!hasSelection) {
+                status.textContent = 'Please select at least one hero.';
+                return;
+            }
+            
+            status.textContent = 'Fetching data...';
+            tableDiv.innerHTML = '';
+            recDiv.style.display = 'none';
+            
+            fetch('/api/team-dungeons', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            })
+                .then(r => r.json())
+                .then(data => {
+                    status.textContent = '';
+                    
+                    // Collect all unique dungeon names, excluding Xul
+                    const dungeons = new Set();
+                    data.forEach(d => {
+                        if (d.scores) {
+                            d.scores.forEach(s => {
+                                if (!s.name.toLowerCase().includes('xul')) {
+                                    dungeons.add(s.name);
+                                }
+                            });
+                        }
+                    });
+                    
+                    const sortedDungeons = Array.from(dungeons).sort();
+                    
+                    // First pass: find global min and max across all cells to calculate gradient
+                    let globalMin = Infinity;
+                    let globalMax = -Infinity;
+                    
+                    data.forEach(d => {
+                        if (d.scores) {
+                            d.scores.forEach(s => {
+                                if (dungeons.has(s.name) && s.activityDifficulty !== null) {
+                                    if (s.activityDifficulty < globalMin) globalMin = s.activityDifficulty;
+                                    if (s.activityDifficulty > globalMax) globalMax = s.activityDifficulty;
+                                }
+                            });
+                        }
+                    });
+                    
+                    let html = '<table class="dungeon-table">';
+                    html += '<thead><tr>';
+                    html += '<th style="text-align:left; padding:10px; background:#16162b; border-bottom:1px solid var(--card-border);">Dungeon</th>';
+                    
+                    data.forEach(d => {
+                        let heroLabel = d.hero ? `<br><span style="font-size:0.75rem;color:var(--text-dim);">${d.hero}</span>` : '';
+                        html += `<th style="padding:10px; background:#16162b; border-bottom:1px solid var(--card-border);">${d.char}${heroLabel}</th>`;
+                    });
+                    html += '</tr></thead><tbody>';
+                    
+                    let lowestOverallLevel = Infinity;
+                    let recommendedDungeons = [];
+                    let totalScores = new Array(data.length).fill(0);
+                    
+                    sortedDungeons.forEach(dName => {
+                        html += `<tr class="dungeon-row"><td style="padding:8px 10px; border-bottom:1px solid var(--card-border); font-weight:600;">${dName}</td>`;
+                        
+                        let levels = [];
+                        data.forEach((d, i) => {
+                            let diff = null;
+                            let scoreVal = null;
+                            let isTimed = true;
+                            if (d.scores) {
+                                const scoreObj = d.scores.find(s => s.name === dName);
+                                if (scoreObj) {
+                                    diff = scoreObj.activityDifficulty;
+                                    scoreVal = scoreObj.rating;
+                                    totalScores[i] += scoreVal;
+                                    if (scoreObj.activity && scoreObj.activity.keystoneBonus === 0) {
+                                        isTimed = false;
+                                    }
+                                }
+                            }
+                            levels.push({char: d.char, diff: diff, score: scoreVal, isTimed: isTimed});
+                        });
+                        
+                        const validLevels = levels.filter(l => l.diff !== null).map(l => l.diff);
+                        const minRowLevel = validLevels.length > 0 ? Math.min(...validLevels) : null;
+                        
+                        if (minRowLevel !== null) {
+                            if (minRowLevel < lowestOverallLevel) {
+                                lowestOverallLevel = minRowLevel;
+                                recommendedDungeons = [dName];
+                            } else if (minRowLevel === lowestOverallLevel) {
+                                recommendedDungeons.push(dName);
+                            }
+                        }
+                        
+                        levels.forEach(l => {
+                            if (l.diff === null) {
+                                html += `<td style="padding:8px 10px; text-align:center; border-bottom:1px solid var(--card-border); color:#555;">-</td>`;
+                            } else {
+                                let isLowestOverall = (l.diff === lowestOverallLevel);
+                                
+                                // Calculate color based on gradient
+                                let ratio = globalMax > globalMin ? (l.diff - globalMin) / (globalMax - globalMin) : 0.5;
+                                let hue = ratio * 120; // 0 is red, 120 is green
+                                let textColor = `hsl(${hue}, 85%, 65%)`;
+                                let fontWeight = isLowestOverall ? 'bold' : 'normal';
+                                
+                                let highlight = `color:${textColor}; font-weight:${fontWeight};`;
+                                
+                                // Subtract 20 for Eternal level (base is 20)
+                                let displayLevel = l.diff > 20 ? (l.diff - 20) : l.diff;
+                                
+                                // Icon logic: empty if timed, clock if over time
+                                let icon = l.isTimed ? '' : `<span style="font-size:0.85rem; margin-right:4px;" title="Over Time Limit">⏱️</span>`;
+                                
+                                let displayScore = l.score ? `<span style="font-size:0.8rem; opacity:0.75; font-weight:normal; margin-left:8px;">${parseFloat(l.score).toFixed(1)}</span>` : '';
+                                
+                                html += `<td style="padding:8px 10px; text-align:center; border-bottom:1px solid var(--card-border); ${highlight}">`;
+                                html += `<div style="display:flex; justify-content:center; align-items:baseline;">${icon}${displayLevel}${displayScore}</div>`;
+                                html += `</td>`;
+                            }
+                        });
+                        
+                        html += '</tr>';
+                    });
+                    
+                    // Add Total Score Row
+                    html += `<tr><td style="padding:10px; font-weight:bold; background:rgba(255,255,255,0.02); border-top:2px solid var(--card-border);">Total Score</td>`;
+                    totalScores.forEach(ts => {
+                        html += `<td style="padding:10px; text-align:center; font-weight:bold; background:rgba(255,255,255,0.02); border-top:2px solid var(--card-border); color:var(--paragon);">${ts.toFixed(1)}</td>`;
+                    });
+                    html += '</tr>';
+                    
+                    html += '</tbody></table>';
+                    tableDiv.innerHTML = html;
+                    
+                    if (lowestOverallLevel !== Infinity && recommendedDungeons.length > 0) {
+                        let disp = lowestOverallLevel > 20 ? (lowestOverallLevel - 20) : lowestOverallLevel;
+                        let typ = lowestOverallLevel > 20 ? "Eternal " : "Difficulty ";
+                        recDiv.innerHTML = `<strong>⭐ Recommended Next Dungeon:</strong> Run <b>${recommendedDungeons.join(', ')}</b> to push your team's lowest bottleneck (${typ}${disp}).`;
+                        recDiv.style.display = 'block';
+                    }
+                })
+                .catch(err => {
+                    status.textContent = 'Error fetching data.';
+                    console.error(err);
+                });
+        }
+
+        // Close on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeConfig();
+        });
+    </script>
+</body>
+</html>
