@@ -1,4 +1,4 @@
-﻿#!/bin/bash
+#!/usr/bin/env bash
 echo "Setting up Fellowship Eternal Tracker..."
 
 if ! command -v uv &> /dev/null; then
