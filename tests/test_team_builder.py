@@ -5,7 +5,7 @@ def test_team_builder_save(page: Page, server_url: str):
     page.goto(server_url)
     
     # Click Team Builder button
-    page.click("button:has-text('🛠️ Team Builder')")
+    page.click("button:has-text('👥 Team Builder')")
     
     # Wait for modal
     modal = page.locator("#teamBuilderModal")
