@@ -6,23 +6,28 @@ from config import load_config
 
 _session = None
 
+
 def _get_session(api_key: str = ""):
     global _session
     if _session is None:
         import requests as req_lib
         import urllib3
+
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
         _session = req_lib.Session()
         _session.verify = False
-        _session.headers.update({
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-            "Accept-Language": "en-US,en;q=0.5",
-        })
+        _session.headers.update(
+            {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                "Accept-Language": "en-US,en;q=0.5",
+            }
+        )
         _session.cookies.set("tomestone_human_verified", "1", domain=".fellows.gg")
     if api_key:
         _session.headers["Authorization"] = f"Bearer {api_key}"
     return _session
+
 
 def parse_page_data(page_data: dict, char_id: int, slug: str) -> dict:
     props = page_data.get("props", {})
@@ -42,17 +47,19 @@ def parse_page_data(page_data: dict, char_id: int, slug: str) -> dict:
     for lv in levels_raw:
         hero_info = hero_lookup.get(lv.get("heroId"), {})
         league = lv.get("league", {})
-        levels.append({
-            "heroId": lv.get("heroId"),
-            "heroName": hero_info.get("localizedName", f"Hero {lv.get('heroId')}"),
-            "heroIcon": hero_info.get("icon", ""),
-            "heroCss": hero_info.get("cssClassName", ""),
-            "difficulty": lv.get("difficulty", 0),
-            "difficultyCss": lv.get("difficultyCssClassName", ""),
-            "leagueName": league.get("localizedName", ""),
-            "leagueCss": league.get("cssClassName", ""),
-            "leagueIcon": league.get("icon", ""),
-        })
+        levels.append(
+            {
+                "heroId": lv.get("heroId"),
+                "heroName": hero_info.get("localizedName", f"Hero {lv.get('heroId')}"),
+                "heroIcon": hero_info.get("icon", ""),
+                "heroCss": hero_info.get("cssClassName", ""),
+                "difficulty": lv.get("difficulty", 0),
+                "difficultyCss": lv.get("difficultyCssClassName", ""),
+                "leagueName": league.get("localizedName", ""),
+                "leagueCss": league.get("cssClassName", ""),
+                "leagueIcon": league.get("icon", ""),
+            }
+        )
 
     levels.sort(key=lambda x: x["difficulty"], reverse=True)
 
@@ -97,6 +104,7 @@ def parse_page_data(page_data: dict, char_id: int, slug: str) -> dict:
         "error": None,
     }
 
+
 def fetch_character_data(char_id: int, slug: str, api_key: str = "") -> dict:
     url = f"https://fellows.gg/character/{char_id}/{slug}/ratings"
     session = _get_session(api_key)
@@ -113,7 +121,11 @@ def fetch_character_data(char_id: int, slug: str, api_key: str = "") -> dict:
         re.DOTALL,
     )
     if not match:
-        return {"error": "Could not find embedded JSON data", "name": slug, "id": char_id}
+        return {
+            "error": "Could not find embedded JSON data",
+            "name": slug,
+            "id": char_id,
+        }
 
     try:
         page_data = json.loads(match.group(1))
@@ -122,11 +134,13 @@ def fetch_character_data(char_id: int, slug: str, api_key: str = "") -> dict:
 
     return parse_page_data(page_data, char_id, slug)
 
+
 def fetch_all_characters() -> list[dict]:
     config = load_config()
     characters = config.get("characters", [])
     api_key = config.get("api_key", "")
     from typing import Any, List, Optional
+
     results: List[Optional[dict[str, Any]]] = [None] * len(characters)
 
     def worker(idx, char):
@@ -143,6 +157,7 @@ def fetch_all_characters() -> list[dict]:
 
     return [r for r in results if r is not None]
 
+
 def fetch_dungeon(char, hero, api_key):
     if not hero:
         return {"char": char["slug"], "scores": []}
@@ -156,9 +171,12 @@ def fetch_dungeon(char, hero, api_key):
     except Exception as e:
         return {"char": char["slug"], "hero": hero, "error": str(e)}
 
+
 def fetch_hero_details_html(char, hero, api_key):
     session = _get_session(api_key)
-    url = f"https://fellows.gg/character/{char['id']}/{char['slug']}/ratings?hero={hero}"
+    url = (
+        f"https://fellows.gg/character/{char['id']}/{char['slug']}/ratings?hero={hero}"
+    )
     try:
         r = session.get(url, timeout=15)
         html = r.text
@@ -170,7 +188,7 @@ def fetch_hero_details_html(char, hero, api_key):
         if not match:
             raise Exception("JSON blob not found")
         j = json.loads(match.group(1))
-        
+
         header = j.get("props", {}).get("headerEncounters", {})
         seasons = header.get("fellowshipDungeonSeasons", [])
         season_html = ""
@@ -184,16 +202,16 @@ def fetch_hero_details_html(char, hero, api_key):
             globalRank = global_placement.get("position") or 0
             globalPercent = global_placement.get("percent") or 0
             globalCss = global_placement.get("cssRankClassName") or ""
-            
-            season_html = f'''
+
+            season_html = f"""
             <div class="season-info">
                 <span class="season-label">{seasonName}</span>
                 <span class="season-rating">{rating:.0f} Rating</span>
                 <span class="season-rank rank-{globalCss}">
                     Top {100 - globalPercent:.1f}% (#{globalRank})
                 </span>
-            </div>'''
-        
+            </div>"""
+
         pinnacle = header.get("pinnacleProgression", {})
         pinnacle_html = ""
         if pinnacle and pinnacle.get("hasAnyProgress"):
@@ -204,12 +222,12 @@ def fetch_hero_details_html(char, hero, api_key):
                     cleared.append(diff_data.get("label", f"Difficulty {diff_id}"))
             cleared_str = ", ".join(cleared) if cleared else "None"
             plabel = pinnacle.get("label", "")
-            pinnacle_html = f'''
+            pinnacle_html = f"""
             <div class="pinnacle-info">
                 <span class="pinnacle-label">🏔️ {plabel}</span>
                 <span class="pinnacle-cleared">Cleared: {cleared_str}</span>
-            </div>'''
-            
+            </div>"""
+
         html_out = season_html + pinnacle_html
         if not html_out:
             html_out = f'<p style="color:var(--text-dim);text-align:center;padding:10px;">No Rating or Pinnacle progress yet for {hero}.</p>'

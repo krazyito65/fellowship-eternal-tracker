@@ -6,69 +6,85 @@ from config import load_config
 
 
 def _esc(val) -> str:
-    if val is None: return ""
-    return str(val).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
+    if val is None:
+        return ""
+    return (
+        str(val)
+        .replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace('"', "&quot;")
+    )
+
 
 def _format_timestamp(ts: int) -> str:
-    if not ts: return ""
+    if not ts:
+        return ""
     try:
         t = time.localtime(ts)
         return time.strftime("%Y-%m-%d %H:%M", t)
     except:
         return str(ts)
 
+
 def build_html(full_roster: list[dict], selected_team=None) -> str:
     characters = list(full_roster)
     cfg = load_config()
-    teams = cfg.get('teams', [])
-    
+    teams = cfg.get("teams", [])
+
     active_team_members = {}
     if selected_team:
         for t in teams:
-            if t.get('name') == selected_team:
-                active_team_members = t.get('members', {})
+            if t.get("name") == selected_team:
+                active_team_members = t.get("members", {})
                 break
-                
+
     if selected_team and active_team_members:
-        characters = [c for c in characters if c['slug'] in active_team_members]
+        characters = [c for c in characters if c["slug"] in active_team_members]
     else:
         characters = []
 
     api_key_val = _esc(cfg.get("api_key", ""))
-    
+
     tracked_chars_html = ""
     for char in full_roster:
-        cname = _esc(char.get('name', char['slug']))
-        tracked_chars_html += f'''
+        cname = _esc(char.get("name", char["slug"]))
+        tracked_chars_html += f"""
             <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.9rem;">
                 <span>{cname}</span>
-                <button class="btn btn-cancel" style="padding:4px 8px; font-size:0.8rem;" onclick="removeCharacter('{_esc(char['slug'])}')">Remove</button>
-            </div>'''
+                <button class="btn btn-cancel" style="padding:4px 8px; font-size:0.8rem;" onclick="removeCharacter('{_esc(char["slug"])}')">Remove</button>
+            </div>"""
 
     tb_saved_teams_html = ""
     for t in teams:
-        tname = _esc(t.get('name'))
-        tb_saved_teams_html += f'''
+        tname = _esc(t.get("name"))
+        tb_saved_teams_html += f"""
             <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.9rem;">
                 <span style="font-weight:600;">{tname}</span>
                 <div>
                     <button class="btn" style="padding:4px 8px; font-size:0.8rem;" onclick="tbEditTeam('{tname}')">Edit</button>
                     <button class="btn btn-cancel" style="padding:4px 8px; font-size:0.8rem;" onclick="tbDeleteTeam('{tname}')">Delete</button>
                 </div>
-            </div>'''
+            </div>"""
 
     teams_options_html = ""
     for t in teams:
-        tname = _esc(t.get('name'))
-        selected_attr = 'selected' if tname == selected_team else ''
-        teams_options_html += f'<option value="{tname}" {selected_attr}>{tname}</option>\n'
+        tname = _esc(t.get("name"))
+        selected_attr = "selected" if tname == selected_team else ""
+        teams_options_html += (
+            f'<option value="{tname}" {selected_attr}>{tname}</option>\n'
+        )
 
     all_heroes = {}
     for char in full_roster:
         for lv in char.get("levels", []):
             hid = lv.get("heroId")
             if hid and hid not in all_heroes:
-                all_heroes[hid] = {"id": hid, "name": lv.get("heroName"), "icon": lv.get("heroIcon")}
+                all_heroes[hid] = {
+                    "id": hid,
+                    "name": lv.get("heroName"),
+                    "icon": lv.get("heroIcon"),
+                }
     sorted_hero_ids = sorted(all_heroes.keys())
 
     tb_selectors_html = ""
@@ -77,8 +93,8 @@ def build_html(full_roster: list[dict], selected_team=None) -> str:
         for c in full_roster:
             if not c.get("error"):
                 char_options += f'<option value="{_esc(c["slug"])}">{_esc(c.get("name", c["slug"]))}</option>'
-        
-        tb_selectors_html += f'''
+
+        tb_selectors_html += f"""
         <div style="display:flex; gap:8px; margin-bottom:6px;">
             <select id="tbChar{i}" onchange="tbUpdateHeroes({i})" style="flex:1; padding:6px; background:#16162b; color:var(--text); border:1px solid var(--card-border); border-radius:4px;">
                 {char_options}
@@ -86,22 +102,25 @@ def build_html(full_roster: list[dict], selected_team=None) -> str:
             <select id="tbHero{i}" style="flex:1; padding:6px; background:#16162b; color:var(--text); border:1px solid var(--card-border); border-radius:4px;">
                 <option value="">-- Select Hero --</option>
             </select>
-        </div>'''
+        </div>"""
 
     team_dropdowns_html = ""
     for char in characters:
-        if char.get("error"): continue
-        selected_hero = active_team_members.get(char['slug']) if active_team_members else ""
+        if char.get("error"):
+            continue
+        selected_hero = (
+            active_team_members.get(char["slug"]) if active_team_members else ""
+        )
         hero_options_html_local = ""
         for hid in sorted_hero_ids:
             hname = all_heroes[hid]["name"]
-            selected_attr = 'selected' if hname == selected_hero else ''
+            selected_attr = "selected" if hname == selected_hero else ""
             hero_options_html_local += f'<option value="{_esc(hname)}" {selected_attr}>{_esc(hname)}</option>\n'
-            
+
         team_dropdowns_html += f"""
         <div style="display:flex; flex-direction:column; gap:4px;">
-            <label style="font-size:0.85rem; color:var(--text-dim);">{_esc(char.get('name', char['slug']))}</label>
-            <select data-slug="{_esc(char['slug'])}" class="team-hero-select" style="padding:6px 10px;background:#0f0f0f;color:var(--text);border:1px solid var(--card-border);border-radius:6px;min-width:120px;">
+            <label style="font-size:0.85rem; color:var(--text-dim);">{_esc(char.get("name", char["slug"]))}</label>
+            <select data-slug="{_esc(char["slug"])}" class="team-hero-select" style="padding:6px 10px;background:#0f0f0f;color:var(--text);border:1px solid var(--card-border);border-radius:6px;min-width:120px;">
                 <option value="">-- Skip --</option>
                 {hero_options_html_local}
             </select>
@@ -113,10 +132,10 @@ def build_html(full_roster: list[dict], selected_team=None) -> str:
             cards_html += f"""
             <div class="card error-card">
                 <div class="card-header">
-                    <h2>{_esc(char.get('name', char.get('slug', '???')))}</h2>
+                    <h2>{_esc(char.get("name", char.get("slug", "???")))}</h2>
                     <span class="error-badge">Error</span>
                 </div>
-                <p class="error-msg">{_esc(char['error'])}</p>
+                <p class="error-msg">{_esc(char["error"])}</p>
             </div>"""
             continue
 
@@ -129,19 +148,22 @@ def build_html(full_roster: list[dict], selected_team=None) -> str:
 
         level_pills = ""
         for lv in char.get("levels", []):
-            is_active = ''
-            if active_team_members and active_team_members.get(char['slug']) == lv["heroName"]:
-                is_active = 'box-shadow: 0 0 0 2px var(--paragon); border-radius:14px;'
-            
+            is_active = ""
+            if (
+                active_team_members
+                and active_team_members.get(char["slug"]) == lv["heroName"]
+            ):
+                is_active = "box-shadow: 0 0 0 2px var(--paragon); border-radius:14px;"
+
             level_pills += f"""
-                <div class="hero-level level-{_esc(lv['difficultyCss'])}" data-hero-name="{_esc(lv['heroName'])}" 
+                <div class="hero-level level-{_esc(lv["difficultyCss"])}" data-hero-name="{_esc(lv["heroName"])}" 
                      style="cursor:pointer; {is_active}" 
-                     onclick="selectHeroForComparison('{_esc(char['slug'])}', '{_esc(lv['heroName'])}', this)"
+                     onclick="selectHeroForComparison('{_esc(char["slug"])}', '{_esc(lv["heroName"])}', this)"
                      title="Click to select for comparison">
-                    <img src="{_esc(lv['heroIcon'])}" alt="{_esc(lv['heroName'])}" class="hero-icon-small"/>
-                    <span class="hero-name">{_esc(lv['heroName'])}</span>
-                    <span class="league-badge league-{_esc(lv['leagueCss'])}">
-                        {_esc(lv['leagueName'])} {lv['difficulty']}
+                    <img src="{_esc(lv["heroIcon"])}" alt="{_esc(lv["heroName"])}" class="hero-icon-small"/>
+                    <span class="hero-name">{_esc(lv["heroName"])}</span>
+                    <span class="league-badge league-{_esc(lv["leagueCss"])}">
+                        {_esc(lv["leagueName"])} {lv["difficulty"]}
                     </span>
                 </div>"""
 
@@ -150,10 +172,10 @@ def build_html(full_roster: list[dict], selected_team=None) -> str:
             s = char["season"]
             season_html = f"""
                 <div class="season-info">
-                    <span class="season-label">{_esc(s['seasonName'])}</span>
-                    <span class="season-rating">{s['rating']:.0f} Rating</span>
-                    <span class="season-rank rank-{_esc(s['globalCss'])}">
-                        Top {100 - s['globalPercent']:.1f}% (#{s['globalRank']})
+                    <span class="season-label">{_esc(s["seasonName"])}</span>
+                    <span class="season-rating">{s["rating"]:.0f} Rating</span>
+                    <span class="season-rank rank-{_esc(s["globalCss"])}">
+                        Top {100 - s["globalPercent"]:.1f}% (#{s["globalRank"]})
                     </span>
                 </div>"""
 
@@ -163,7 +185,7 @@ def build_html(full_roster: list[dict], selected_team=None) -> str:
             cleared_str = ", ".join(p["cleared"]) if p["cleared"] else "None"
             pinnacle_html = f"""
                 <div class="pinnacle-info">
-                    <span class="pinnacle-label">🏔️ {_esc(p['label'])}</span>
+                    <span class="pinnacle-label">🏔️ {_esc(p["label"])}</span>
                     <span class="pinnacle-cleared">Cleared: {_esc(cleared_str)}</span>
                 </div>"""
 
@@ -182,11 +204,11 @@ def build_html(full_roster: list[dict], selected_team=None) -> str:
         cards_html += f"""
         <div class="card char-card">
             <div class="card-header">
-                <img src="{_esc(char['avatar'])}" alt="" class="avatar"/>
+                <img src="{_esc(char["avatar"])}" alt="" class="avatar"/>
                 <div class="card-title">
                     <h2>
-                        <a href="https://fellows.gg/character/{char['id']}/{_esc(char['slug'])}/ratings"
-                           target="_blank" rel="noopener">{_esc(char['name'])}</a>
+                        <a href="https://fellows.gg/character/{char["id"]}/{_esc(char["slug"])}/ratings"
+                           target="_blank" rel="noopener">{_esc(char["name"])}</a>
                     </h2>
                     {updated_str}
                 </div>
@@ -206,7 +228,8 @@ def build_html(full_roster: list[dict], selected_team=None) -> str:
     bar_chart_html = ""
     eternal_chars = []
     for char in characters:
-        if char.get("error"): continue
+        if char.get("error"):
+            continue
         max_e = 0
         max_h = ""
         for lv in char.get("levels", []):
@@ -226,7 +249,7 @@ def build_html(full_roster: list[dict], selected_team=None) -> str:
                         {_esc(name)}
                     </div>
                     <div class="bar-track">
-                        <div class="bar-fill {'bar-leader' if level == max_val else ''}"
+                        <div class="bar-fill {"bar-leader" if level == max_val else ""}"
                              style="width: {pct}%">
                             <span class="bar-value">Eternal {level}</span>
                         </div>
@@ -240,17 +263,18 @@ def build_html(full_roster: list[dict], selected_team=None) -> str:
 
     char_heroes = {}
     for c in full_roster:
-        if c.get("error"): continue
+        if c.get("error"):
+            continue
         h_set = set()
         for lv in c.get("levels", []):
             h_set.add(lv["heroName"])
         char_heroes[c["slug"]] = sorted(h_set)
 
     try:
-        with open('index.html', 'r', encoding='utf-8') as f:
+        with open("index.html", "r", encoding="utf-8") as f:
             template_str = f.read()
         template = string.Template(template_str)
-        
+
         return template.safe_substitute(
             fetch_time=fetch_time,
             bar_chart_html=bar_chart_html,
@@ -262,8 +286,10 @@ def build_html(full_roster: list[dict], selected_team=None) -> str:
             tb_saved_teams_html=tb_saved_teams_html,
             api_key_val=api_key_val,
             char_heroes_json=json.dumps(char_heroes),
-            empty_state_html='<div style="text-align:center; margin: 40px; padding:40px; background:rgba(255,255,255,0.05); border-radius:12px;"><h2 style="margin-bottom:10px;">No Team Selected</h2><p style="color:var(--text-dim);">Please select an Active Team from the top menu, or click Team Builder to create one.</p></div>' if not characters else '',
-            display_style='display:none;' if not characters else '',
+            empty_state_html='<div style="text-align:center; margin: 40px; padding:40px; background:rgba(255,255,255,0.05); border-radius:12px;"><h2 style="margin-bottom:10px;">No Team Selected</h2><p style="color:var(--text-dim);">Please select an Active Team from the top menu, or click Team Builder to create one.</p></div>'
+            if not characters
+            else "",
+            display_style="display:none;" if not characters else "",
         )
     except Exception as e:
         return f"<html><body><h1>Template Error</h1><pre>{e!s}</pre></body></html>"

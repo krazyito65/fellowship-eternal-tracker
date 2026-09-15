@@ -40,12 +40,17 @@ class TrackerHandler(BaseHTTPRequestHandler):
             config = load_config()
             characters = config.get("characters", [])
             api_key = config.get("api_key", "")
-            
+
             selected_chars = [c for c in characters if selections.get(c["slug"])]
             with concurrent.futures.ThreadPoolExecutor() as executor:
-                futures = [executor.submit(fetch_dungeon, c, selections.get(c["slug"]), api_key) for c in selected_chars]
+                futures = [
+                    executor.submit(
+                        fetch_dungeon, c, selections.get(c["slug"]), api_key
+                    )
+                    for c in selected_chars
+                ]
                 results = [f.result() for f in futures]
-                
+
             self.send_response(200)
             self.send_header("Content-Type", "application/json; charset=utf-8")
             self.end_headers()
@@ -58,19 +63,19 @@ class TrackerHandler(BaseHTTPRequestHandler):
                 data = json.loads(body)
             except Exception:
                 data = {}
-                
+
             slug = data.get("slug")
             hero = data.get("hero")
-            
+
             config = load_config()
             chars = config.get("characters", [])
             char = next((c for c in chars if c["slug"] == slug), None)
-            
+
             html_out = ""
             if char and hero:
                 api_key = config.get("api_key", "")
                 html_out = fetch_hero_details_html(char, hero, api_key)
-                    
+
             self.send_response(200)
             self.send_header("Content-Type", "application/json; charset=utf-8")
             self.end_headers()
@@ -95,6 +100,7 @@ class TrackerHandler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(b"Not Found")
 
+
 def main():
     port = 8099
     server = HTTPServer(("localhost", port), TrackerHandler)
@@ -111,6 +117,7 @@ def main():
         pass
     print("\nShutting down server...")
     server.server_close()
+
 
 if __name__ == "__main__":
     main()
