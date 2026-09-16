@@ -5,4 +5,6 @@ uv run ruff check . --fix
 uv run ruff format .
 echo "Running type checker..."
 uv run ty check .
+echo "Running tests..."
+uv run pytest
 echo "All checks passed!"
