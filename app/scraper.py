@@ -1,7 +1,7 @@
 import json
 import re
 
-from config import load_config
+from app.config import load_config
 
 _session = None
 

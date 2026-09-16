@@ -1,8 +1,9 @@
+from pathlib import Path
 import json
 import string
 import time
 
-from config import load_config
+from app.config import load_config
 
 
 def _esc(val) -> str:
@@ -269,7 +270,7 @@ def build_html(full_roster: list[dict], selected_team=None) -> str:
         char_heroes[c["slug"]] = sorted(h_set)
 
     try:
-        with open("index.html", encoding="utf-8") as f:
+        with open(Path(__file__).parent / "templates" / "index.html", encoding="utf-8") as f:
             template_str = f.read()
         template = string.Template(template_str)
 

@@ -7,7 +7,7 @@ _env_path = os.environ.get("CONFIG_FILE")
 if _env_path:
     CONFIG_PATH = Path(_env_path)
 else:
-    CONFIG_PATH = Path(__file__).parent / "config.json"
+    CONFIG_PATH = Path(__file__).parent.parent / "config.json"
 
 
 def load_config() -> dict:

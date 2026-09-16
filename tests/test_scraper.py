@@ -1,4 +1,4 @@
-from scraper import parse_page_data
+from app.scraper import parse_page_data
 
 
 def test_parse_page_data_valid():

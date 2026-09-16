@@ -2,7 +2,7 @@ from pathlib import Path
 import os
 import json
 import tempfile
-import config
+from app import config
 
 def test_load_save_config():
     fd, path = tempfile.mkstemp(suffix=".json")

@@ -1,5 +1,5 @@
-import scraper
-import config
+from app import scraper
+from app import config
 import tempfile
 import os
 import json

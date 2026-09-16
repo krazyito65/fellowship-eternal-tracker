@@ -1,4 +1,4 @@
-import template
+from app import template
 
 def test_build_html_empty():
     html = template.build_html([], None)

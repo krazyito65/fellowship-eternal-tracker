@@ -4,9 +4,9 @@ import time
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import parse_qs, urlparse
 
-from config import load_config, save_config
-from scraper import fetch_all_characters, fetch_dungeon, fetch_hero_details_html
-from template import build_html
+from app.config import load_config, save_config
+from app.scraper import fetch_all_characters, fetch_dungeon, fetch_hero_details_html
+from app.template import build_html
 
 _cache_data = None
 _cache_time = 0
