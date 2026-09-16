@@ -1,5 +1,5 @@
-import os
 import json
+import os
 from pathlib import Path
 
 # Allow overriding config file location via environment variable
