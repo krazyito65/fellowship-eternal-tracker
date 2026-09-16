@@ -1,9 +1,11 @@
 from app import template
 
+
 def test_build_html_empty():
     html = template.build_html([], None)
     assert "Fellowship Eternal Tracker" in html
     assert "Active Team:" in html
+
 
 def test_build_html_with_data():
     mock_data = [
@@ -19,11 +21,11 @@ def test_build_html_with_data():
                     "heroName": "TestHero",
                     "difficulty": 25,
                     "rating": 1000,
-                    "isTimed": True
+                    "isTimed": True,
                 }
             ],
             "season": None,
-            "pinnacle": None
+            "pinnacle": None,
         }
     ]
     html = template.build_html(mock_data, None)
